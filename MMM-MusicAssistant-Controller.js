@@ -155,17 +155,23 @@ Module.register("MMM-MusicAssistant-Controller", {
     return Boolean(this.config.playerId) || this.availablePlayers().length <= 1;
   },
 
+  playerSelectorMarkup() {
+    if (this.config.playerId) return "";
+    return `
+      <button class="mac-player mac-focusable" type="button" aria-haspopup="listbox">
+        <i class="fa fa-volume-up" aria-hidden="true"></i><span>Select a player</span>
+        <i class="fa fa-chevron-down" aria-hidden="true"></i>
+      </button>
+      <div class="mac-player-list" role="listbox" hidden></div>`;
+  },
+
   getDom() {
     const root = document.createElement("section");
     root.className = `mac${this.config.compact ? " mac-compact" : ""}`;
     root.setAttribute("aria-label", "Music Assistant controller");
     root.innerHTML = `
       <div class="mac-status" role="status"></div>
-      <button class="mac-player mac-focusable" type="button" aria-haspopup="listbox">
-        <i class="fa fa-volume-up" aria-hidden="true"></i><span>Select a player</span>
-        <i class="fa fa-chevron-down" aria-hidden="true"></i>
-      </button>
-      <div class="mac-player-list" role="listbox" hidden></div>
+      ${this.playerSelectorMarkup()}
       <div class="mac-now">
         <div class="mac-art-wrap"><img class="mac-art" alt="" hidden><i class="fa fa-music mac-art-placeholder" aria-hidden="true"></i></div>
         <div class="mac-meta">
@@ -180,7 +186,9 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.statusEl = root.querySelector(".mac-status");
     this.playerButton = root.querySelector(".mac-player");
     this.playerList = root.querySelector(".mac-player-list");
-    this.playerButton.addEventListener("click", () => this.togglePlayerMenu());
+    if (this.playerButton) {
+      this.playerButton.addEventListener("click", () => this.togglePlayerMenu());
+    }
     const controls = [
       ["previous", "fa-step-backward", "Previous"],
       ["volumeDown", "fa-volume-down", "Volume down"],
@@ -260,7 +268,7 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   renderPlayerList() {
-    if (!this.domReady) return;
+    if (!this.domReady || !this.playerButton || !this.playerList) return;
     const available = this.availablePlayers();
     const selectorHidden = this.hidesPlayerSelector();
     if (selectorHidden) this.playerMenuOpen = false;
@@ -291,7 +299,9 @@ Module.register("MMM-MusicAssistant-Controller", {
     );
     this.root.dataset.connection = this.connectionState;
     this.statusEl.textContent = this.statusText();
-    this.playerButton.querySelector("span").textContent = state.playerName || "Select a player";
+    if (this.playerButton) {
+      this.playerButton.querySelector("span").textContent = state.playerName || "Select a player";
+    }
     this.root.querySelector(".mac-title").textContent = state.title;
     this.root.querySelector(".mac-artist").textContent = state.artist || state.state;
     const art = this.root.querySelector(".mac-art");

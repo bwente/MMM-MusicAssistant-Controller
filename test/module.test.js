@@ -123,3 +123,29 @@ test("configured player resolution never falls back to another player", () => {
   assert.equal(instance.selectedPlayerId, "fixed");
   assert.equal(instance.playerMenuOpen, false);
 });
+
+test("omits player selector markup when playerId is configured", () => {
+  let definition;
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: {
+      register(_name, moduleDefinition) {
+        definition = moduleDefinition;
+      }
+    }
+  });
+
+  const fixedMarkup = definition.playerSelectorMarkup.call({
+    config: { playerId: "fixed-player" }
+  });
+  const selectableMarkup = definition.playerSelectorMarkup.call({
+    config: { playerId: "" }
+  });
+
+  assert.equal(fixedMarkup, "");
+  assert.match(selectableMarkup, /mac-player/);
+  assert.match(selectableMarkup, /mac-player-list/);
+});
