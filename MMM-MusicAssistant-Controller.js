@@ -36,6 +36,7 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.domReady = false;
     this.progressTimer = null;
     this.connection = null;
+    this.boundFitViewport = () => this.fitViewport();
     if (!this.config.tokenFile) {
       this.setStatus("error", "Configure an absolute tokenFile path");
       return;
@@ -186,7 +187,19 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.renderState();
     clearInterval(this.progressTimer);
     this.progressTimer = setInterval(() => this.renderProgress(), 1000);
+    requestAnimationFrame(() => {
+      this.fitViewport();
+      window.addEventListener("resize", this.boundFitViewport);
+    });
     return root;
+  },
+
+  fitViewport() {
+    if (!this.root || !this.root.isConnected) return;
+    this.root.style.maxWidth = "";
+    const left = Math.max(0, this.root.getBoundingClientRect().left);
+    const available = Math.max(280, window.innerWidth - left - 12);
+    this.root.style.maxWidth = `${Math.floor(available)}px`;
   },
 
   makeButton(label, icon) {

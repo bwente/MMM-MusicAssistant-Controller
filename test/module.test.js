@@ -12,14 +12,16 @@ test("resolves dependency scripts through the MagicMirror module directory", () 
     path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
     "utf8"
   );
-  vm.runInNewContext(source, {
+  const sandbox = {
     Module: {
       register(name, moduleDefinition) {
         assert.equal(name, "MMM-MusicAssistant-Controller");
         definition = moduleDefinition;
       }
-    }
-  });
+    },
+    window: { innerWidth: 1024 }
+  };
+  vm.runInNewContext(source, sandbox);
 
   const moduleInstance = {
     file(relativePath) {
@@ -34,4 +36,31 @@ test("resolves dependency scripts through the MagicMirror module directory", () 
       "/modules/MMM-MusicAssistant-Controller/lib/connection.js"
     ]
   );
+});
+
+test("limits the module to the viewport space remaining at its rendered offset", () => {
+  let definition;
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: {
+      register(_name, moduleDefinition) {
+        definition = moduleDefinition;
+      }
+    },
+    window: { innerWidth: 1024 }
+  });
+  const root = {
+    isConnected: true,
+    style: {},
+    getBoundingClientRect() {
+      return { left: 62 };
+    }
+  };
+
+  definition.fitViewport.call({ root });
+
+  assert.equal(root.style.maxWidth, "950px");
 });
