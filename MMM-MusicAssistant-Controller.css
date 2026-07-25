@@ -106,6 +106,21 @@
   outline-offset: 2px;
 }
 
+.mac.mac-compact { padding: 8px; font-size: 16px; }
+.mac-compact .mac-status { min-height: 20px; font-size: 13px; }
+.mac-compact .mac-player { min-height: 40px; padding: 5px 11px; }
+.mac-compact .mac-now { min-height: 98px; gap: 12px; padding: 8px 0; }
+.mac-compact .mac-art-wrap { width: 84px; height: 84px; flex-basis: 84px; border-radius: 8px; }
+.mac-compact .mac-art-placeholder { font-size: 32px; }
+.mac-compact .mac-title { font-size: 21px; }
+.mac-compact .mac-artist { font-size: 16px; }
+.mac-compact .mac-progress-row { margin-top: 10px; font-size: 12px; }
+.mac-compact .mac-control { min-height: 50px; border-radius: 9px; font-size: 22px; }
+.mac-compact .mac-playlists { gap: 8px; margin-top: 8px; }
+.mac-compact .mac-tile { min-height: 68px; padding: 7px; gap: 4px; border-radius: 9px; }
+.mac-compact .mac-tile i { font-size: 22px; }
+.mac-compact .mac-tile img { width: 34px; height: 34px; }
+
 @media (max-width: 700px) {
   .mac { padding: 8px; }
   .mac-now { min-height: 112px; }

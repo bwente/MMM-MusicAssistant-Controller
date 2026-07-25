@@ -61,6 +61,7 @@ Add the module to `config/config.js`:
     serverUrl: "http://music-assistant.local:8095",
     tokenFile: "/absolute/private/path/music-assistant-token.js",
     playerId: "explicit-player-id",
+    compact: false,
     volumeStep: 5,
     playlists: [
       {
@@ -101,15 +102,20 @@ The addresses, player ID, and playlist IDs above are examples only.
 | --- | --- | --- | --- |
 | `serverUrl` | string | `http://music-assistant.local:8095` | Music Assistant HTTP(S) base URL. |
 | `tokenFile` | string | empty | Required absolute path to the private CommonJS token file. |
-| `playerId` | string | empty | Preferred exact Music Assistant player ID. |
+| `playerId` | string | empty | Hardcode an exact player ID and hide the player selector. |
+| `compact` | boolean | `false` | Use a shorter, denser layout while retaining large touch targets. |
 | `volumeStep` | number | `5` | Percentage-point change for volume up/down. |
 | `playlists` | array | `[]` | Launcher tiles; each accepts `label`, `uri`, `icon`, or `cover`. |
 | `reconnectBaseDelay` | number | `1000` | Initial reconnect delay in milliseconds. |
 | `reconnectMaxDelay` | number | `30000` | Maximum reconnect delay in milliseconds. |
 
-An exact configured `playerId` wins. Otherwise, the module restores the last locally selected
-player and then falls back to the first available player. Player names are display-only and are
-never used for resolution.
+A configured `playerId` requires that exact player and removes the selector. When `playerId` is
+empty, the module restores the last locally selected player and then falls back to the first
+available player. The selector is also hidden automatically whenever Music Assistant reports only
+one available player. Player names are display-only and are never used for resolution.
+
+The standard layout remains the default. Set `compact: true` when the module shares a page with
+other content or needs less vertical space.
 
 `icon` is a Font Awesome icon name without the `fa-` prefix. `cover` can be an image URL or a
 MagicMirror-served image path. A tile uses `player_queues/play_media` with the selected player ID

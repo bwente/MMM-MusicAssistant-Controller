@@ -6,6 +6,7 @@ Module.register("MMM-MusicAssistant-Controller", {
     serverUrl: "http://music-assistant.local:8095",
     tokenFile: "",
     playerId: "",
+    compact: false,
     volumeStep: 5,
     playlists: [],
     reconnectBaseDelay: 1000,
@@ -108,6 +109,11 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   resolveSelectedPlayer() {
+    if (this.config.playerId) {
+      this.selectedPlayerId = this.config.playerId;
+      this.playerMenuOpen = false;
+      return;
+    }
     const player = MusicAssistantControllerCore.resolvePlayer(
       this.players,
       this.config.playerId,
@@ -139,9 +145,19 @@ Module.register("MMM-MusicAssistant-Controller", {
     return this.queues[player.active_source] || this.queues[player.player_id] || {};
   },
 
+  availablePlayers() {
+    return Object.values(this.players).filter((player) =>
+      player && player.player_id && player.available !== false && player.enabled !== false
+    );
+  },
+
+  hidesPlayerSelector() {
+    return Boolean(this.config.playerId) || this.availablePlayers().length <= 1;
+  },
+
   getDom() {
     const root = document.createElement("section");
-    root.className = "mac";
+    root.className = `mac${this.config.compact ? " mac-compact" : ""}`;
     root.setAttribute("aria-label", "Music Assistant controller");
     root.innerHTML = `
       <div class="mac-status" role="status"></div>
@@ -238,15 +254,17 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   togglePlayerMenu(force) {
+    if (this.hidesPlayerSelector()) return;
     this.playerMenuOpen = typeof force === "boolean" ? force : !this.playerMenuOpen;
     this.renderPlayerList();
   },
 
   renderPlayerList() {
     if (!this.domReady) return;
-    const available = Object.values(this.players).filter((player) =>
-      player.available !== false && player.enabled !== false
-    );
+    const available = this.availablePlayers();
+    const selectorHidden = this.hidesPlayerSelector();
+    if (selectorHidden) this.playerMenuOpen = false;
+    this.playerButton.hidden = selectorHidden;
     this.playerList.replaceChildren();
     for (const player of available) {
       const button = document.createElement("button");
@@ -258,7 +276,7 @@ Module.register("MMM-MusicAssistant-Controller", {
       button.addEventListener("click", () => this.selectPlayer(player.player_id));
       this.playerList.appendChild(button);
     }
-    this.playerList.hidden = !this.playerMenuOpen;
+    this.playerList.hidden = selectorHidden || !this.playerMenuOpen;
     this.playerButton.setAttribute("aria-expanded", String(this.playerMenuOpen));
     if (this.focusActive) this.refreshFocus();
   },
@@ -319,7 +337,13 @@ Module.register("MMM-MusicAssistant-Controller", {
 
   statusText() {
     if (this.connectionState === "connected") {
-      return this.selectedPlayerId ? "" : "Connected · no players available";
+      if (!this.selectedPlayerId) return "Connected · no players available";
+      if (!this.players[this.selectedPlayerId]) {
+        return this.config.playerId
+          ? "Connected · configured player unavailable"
+          : "Connected · selected player unavailable";
+      }
+      return "";
     }
     if (this.connectionState === "connecting") return "Connecting to Music Assistant…";
     if (this.connectionState === "reconnecting") return "Connection lost · reconnecting…";

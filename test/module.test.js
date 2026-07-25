@@ -64,3 +64,62 @@ test("limits the module to the viewport space remaining at its rendered offset",
 
   assert.equal(root.style.maxWidth, "950px");
 });
+
+test("hides player selection for a configured player or one available player", () => {
+  let definition;
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: {
+      register(_name, moduleDefinition) {
+        definition = moduleDefinition;
+      }
+    }
+  });
+
+  const onePlayer = {
+    config: { playerId: "" },
+    players: { p1: { player_id: "p1", available: true, enabled: true } },
+    availablePlayers: definition.availablePlayers
+  };
+  assert.equal(definition.hidesPlayerSelector.call(onePlayer), true);
+
+  const twoPlayers = {
+    config: { playerId: "" },
+    players: {
+      p1: { player_id: "p1", available: true, enabled: true },
+      p2: { player_id: "p2", available: true, enabled: true }
+    },
+    availablePlayers: definition.availablePlayers
+  };
+  assert.equal(definition.hidesPlayerSelector.call(twoPlayers), false);
+  twoPlayers.config.playerId = "p1";
+  assert.equal(definition.hidesPlayerSelector.call(twoPlayers), true);
+});
+
+test("configured player resolution never falls back to another player", () => {
+  let definition;
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: {
+      register(_name, moduleDefinition) {
+        definition = moduleDefinition;
+      }
+    }
+  });
+  const instance = {
+    config: { playerId: "fixed" },
+    selectedPlayerId: "other",
+    playerMenuOpen: true
+  };
+
+  definition.resolveSelectedPlayer.call(instance);
+
+  assert.equal(instance.selectedPlayerId, "fixed");
+  assert.equal(instance.playerMenuOpen, false);
+});
