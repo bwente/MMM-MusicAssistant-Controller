@@ -13,7 +13,10 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   getScripts() {
-    return ["lib/core.js", "lib/connection.js"];
+    return [
+      this.file("lib/core.js"),
+      this.file("lib/connection.js")
+    ];
   },
 
   getStyles() {
