@@ -114,8 +114,34 @@ empty, the module restores the last locally selected player and then falls back 
 available player. The selector is also hidden automatically whenever Music Assistant reports only
 one available player. Player names are display-only and are never used for resolution.
 
+Configuration keys are case-sensitive: use `playerId` with a capital `I`, not `playerid`.
+
 The standard layout remains the default. Set `compact: true` when the module shares a page with
 other content or needs less vertical space.
+
+### Finding a player ID
+
+Use Music Assistant's `players/all` API command and copy the `player_id` belonging to the desired
+player. On a computer that can reach Music Assistant:
+
+```sh
+read -rsp "Music Assistant token: " MA_TOKEN
+echo
+curl --silent --show-error \
+  --header "Authorization: Bearer ${MA_TOKEN}" \
+  --header "Content-Type: application/json" \
+  --data '{"message_id":"1","command":"players/all","args":{}}' \
+  "http://music-assistant.local:8095/api" |
+  jq -r '.result[] | "\(.name)\t\(.player_id)"'
+unset MA_TOKEN
+```
+
+This prints each player name followed by its exact ID. If `jq` is unavailable, omit the final
+pipe and inspect the `player_id` fields in the JSON response. Use your real Music Assistant URL,
+but do not paste the token directly into the command or save the output in public documentation.
+
+The same command and response schema can be inspected in Music Assistant's generated API
+documentation at `http://YOUR_MA_SERVER:8095/api-docs`.
 
 `icon` is a Font Awesome icon name without the `fa-` prefix. `cover` can be an image URL or a
 MagicMirror-served image path. A tile uses `player_queues/play_media` with the selected player ID

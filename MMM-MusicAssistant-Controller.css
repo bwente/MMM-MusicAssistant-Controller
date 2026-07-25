@@ -14,6 +14,7 @@
 }
 
 .mac *, .mac *::before, .mac *::after { box-sizing: border-box; }
+.mac [hidden] { display: none !important; }
 .mac button { font: inherit; color: inherit; touch-action: manipulation; }
 .mac-status { min-height: 24px; color: #fbbf24; text-align: center; font-size: 15px; }
 .mac[data-connection="connected"] .mac-status:empty { display: none; }
