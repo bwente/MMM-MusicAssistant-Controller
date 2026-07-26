@@ -84,7 +84,6 @@
   background: #242a31;
   font-size: 27px;
 }
-.mac-control[data-action="playPause"] { color: #111418; background: var(--mac-accent); }
 .mac-playlists { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .mac-tile {
   display: flex;
