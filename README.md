@@ -134,7 +134,8 @@ The standard touchscreen layout remains the default.
 
 Set `compact: true` when the controller is a supplementary module in a normal MagicMirror region.
 Compact mode is capped at 420px wide, uses smaller now-playing artwork and controls, and arranges
-playlist launchers in a two-column grid. It does not require Seymour or a fullscreen position.
+playlist launchers in a two-column grid. It works in any standard MagicMirror position and does
+not require a fullscreen layout.
 
 ```js
 {
