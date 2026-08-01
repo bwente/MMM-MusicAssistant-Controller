@@ -19,7 +19,7 @@ module.exports = NodeHelper.create({
     } catch (error) {
       this.sendSocketNotification("MA_TOKEN_RESULT", {
         requestId,
-        error: `Unable to load Music Assistant token: ${error.message}`
+        error: error.message
       });
     }
   }

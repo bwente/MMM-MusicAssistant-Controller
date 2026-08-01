@@ -7,6 +7,18 @@ provides large playback controls, switches between players, and launches configu
 It does not require Home Assistant, embed the Music Assistant web app, or depend on another
 MagicMirror module.
 
+**Status:** Active and maintained.
+
+## Screenshots
+
+### Full touchscreen layout
+
+![Full touchscreen Music Assistant controller](screenshots/MAC-fullscreen.png)
+
+### Compact standard-mirror layout
+
+![Compact Music Assistant controller](screenshots/MAC-compact.png)
+
 ## Requirements
 
 - MagicMirror²
@@ -182,6 +194,12 @@ External modules can send:
 
 | Notification | Action |
 | --- | --- |
+| `MUSIC_PLAY` | Start or resume playback |
+| `MUSIC_PAUSE` | Pause playback |
+| `MUSIC_STOP` | Stop playback |
+| `MUSIC_PLAY_URI` | Replace the queue and play a Music Assistant URI |
+| `MUSIC_SET_VOLUME` | Set an absolute volume from 0–100 |
+| `MUSIC_SELECT_PLAYER` | Select an available player when `playerId` is not configured |
 | `MUSIC_CONTROL_UP`, `MUSIC_CONTROL_LEFT` | Move focus backward |
 | `MUSIC_CONTROL_DOWN`, `MUSIC_CONTROL_RIGHT` | Move focus forward |
 | `MUSIC_CONTROL_SELECT` | Activate the focused control |
@@ -200,6 +218,46 @@ this.sendNotification("MUSIC_CONTROL_SELECT");
 ```
 
 No GPIO or device-specific code is included.
+
+Commands that accept payloads use these forms:
+
+```js
+this.sendNotification("MUSIC_PLAY_URI", {
+  uri: "library://playlist/1",
+  playerId: "optional-player-id"
+});
+this.sendNotification("MUSIC_SET_VOLUME", {
+  volume: 35,
+  playerId: "optional-player-id"
+});
+this.sendNotification("MUSIC_SELECT_PLAYER", { playerId: "player-id" });
+```
+
+`MUSIC_PLAY_URI` also accepts a URI string, `MUSIC_SET_VOLUME` accepts a number, and
+`MUSIC_SELECT_PLAYER` accepts a player-ID string. When this module has a configured `playerId`,
+that fixed player always wins and `MUSIC_SELECT_PLAYER` is ignored. This prevents an automation
+from accidentally controlling a different room.
+
+Explicit `MUSIC_PLAY`, `MUSIC_PAUSE`, and `MUSIC_STOP` notifications are preferable to toggles in
+scheduled automations. For example, a scheduler can send `MUSIC_PLAY_URI` at 14:00 and
+`MUSIC_STOP` at 15:00 without depending on the player's previous state. Scheduling and quiet-hour
+policy remain the responsibility of the sending module or Home Assistant.
+
+The controller broadcasts:
+
+| Notification | Payload |
+| --- | --- |
+| `MUSIC_STATE_CHANGED` | `playerId`, `state`, `title`, `artist`, `volume`, `elapsed`, `duration` |
+| `MUSIC_CONNECTION_CHANGED` | `state`, `error` |
+
+Broadcasts are deduplicated and contain no authentication information.
+
+## Translations
+
+The module follows MagicMirror's global `language` setting and includes Bulgarian (`bg`), Danish
+(`da`), German (`de`), English (`en`), Spanish (`es`), French (`fr`), Hungarian (`hu`), Dutch
+(`nl`), Russian (`ru`), and Thai (`th`). Player names, track metadata, and configured playlist
+labels remain exactly as supplied by Music Assistant or your configuration.
 
 ## Connection behavior
 

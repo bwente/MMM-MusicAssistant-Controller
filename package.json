@@ -1,6 +1,6 @@
 {
   "name": "mmm-musicassistant-controller",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "A compact MagicMirror controller for Music Assistant",
   "main": "MMM-MusicAssistant-Controller.js",
   "scripts": {
@@ -9,8 +9,21 @@
   "keywords": [
     "magicmirror",
     "music-assistant",
-    "touchscreen"
+    "music",
+    "audio",
+    "touchscreen",
+    "websocket",
+    "automation",
+    "compact"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bwente/MMM-MusicAssistant-Controller.git"
+  },
+  "homepage": "https://github.com/bwente/MMM-MusicAssistant-Controller#readme",
+  "bugs": {
+    "url": "https://github.com/bwente/MMM-MusicAssistant-Controller/issues"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=18"

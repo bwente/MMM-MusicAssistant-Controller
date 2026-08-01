@@ -5,6 +5,18 @@ const assert = require("node:assert/strict");
 const Core = require("../lib/core");
 
 test("constructs documented player commands without leaking unrelated data", () => {
+  assert.deepEqual(Core.COMMANDS.play("kitchen"), {
+    command: "players/cmd/play",
+    args: { player_id: "kitchen" }
+  });
+  assert.deepEqual(Core.COMMANDS.pause("kitchen"), {
+    command: "players/cmd/pause",
+    args: { player_id: "kitchen" }
+  });
+  assert.deepEqual(Core.COMMANDS.stop("kitchen"), {
+    command: "players/cmd/stop",
+    args: { player_id: "kitchen" }
+  });
   assert.deepEqual(Core.COMMANDS.playPause("kitchen"), {
     command: "players/cmd/play_pause",
     args: { player_id: "kitchen" }
@@ -92,7 +104,8 @@ test("maps every generic notification", () => {
     "MUSIC_CONTROL_UP", "MUSIC_CONTROL_DOWN", "MUSIC_CONTROL_LEFT",
     "MUSIC_CONTROL_RIGHT", "MUSIC_CONTROL_SELECT", "MUSIC_CONTROL_BACK",
     "MUSIC_PLAY_PAUSE", "MUSIC_NEXT", "MUSIC_PREVIOUS",
-    "MUSIC_VOLUME_UP", "MUSIC_VOLUME_DOWN"
+    "MUSIC_VOLUME_UP", "MUSIC_VOLUME_DOWN", "MUSIC_PLAY", "MUSIC_PAUSE",
+    "MUSIC_STOP", "MUSIC_PLAY_URI", "MUSIC_SET_VOLUME", "MUSIC_SELECT_PLAYER"
   ];
   for (const name of names) assert.ok(Core.notificationAction(name), name);
   assert.equal(Core.notificationAction("SOME_OTHER_NOTIFICATION"), null);

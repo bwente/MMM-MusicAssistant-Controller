@@ -24,6 +24,21 @@ Module.register("MMM-MusicAssistant-Controller", {
     return ["MMM-MusicAssistant-Controller.css", "font-awesome.css"];
   },
 
+  getTranslations() {
+    return {
+      en: "translations/en.json",
+      bg: "translations/bg.json",
+      da: "translations/da.json",
+      de: "translations/de.json",
+      es: "translations/es.json",
+      fr: "translations/fr.json",
+      hu: "translations/hu.json",
+      nl: "translations/nl.json",
+      ru: "translations/ru.json",
+      th: "translations/th.json"
+    };
+  },
+
   start() {
     this.players = {};
     this.queues = {};
@@ -37,9 +52,11 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.domReady = false;
     this.progressTimer = null;
     this.connection = null;
+    this.lastBroadcastState = "";
+    this.lastConnectionBroadcast = "";
     this.boundFitViewport = () => this.fitViewport();
     if (!this.config.tokenFile) {
-      this.setStatus("error", "Configure an absolute tokenFile path");
+      this.setStatus("error", this.translate("CONFIGURE_TOKEN_FILE"));
       return;
     }
     this.sendSocketNotification("MA_LOAD_TOKEN", {
@@ -51,7 +68,7 @@ Module.register("MMM-MusicAssistant-Controller", {
   socketNotificationReceived(notification, payload) {
     if (notification !== "MA_TOKEN_RESULT" || !payload || payload.requestId !== this.requestId) return;
     if (payload.error) {
-      this.setStatus("error", payload.error);
+      this.setStatus("error", this.translate("TOKEN_FILE_ERROR", { error: payload.error }));
       return;
     }
     this.connect(payload.token);
@@ -159,7 +176,7 @@ Module.register("MMM-MusicAssistant-Controller", {
     if (this.config.playerId) return "";
     return `
       <button class="mac-player mac-focusable" type="button" aria-haspopup="listbox">
-        <i class="fa fa-volume-up" aria-hidden="true"></i><span>Select a player</span>
+        <i class="fa fa-volume-up" aria-hidden="true"></i><span>${this.translate("SELECT_PLAYER")}</span>
         <i class="fa fa-chevron-down" aria-hidden="true"></i>
       </button>
       <div class="mac-player-list" role="listbox" hidden></div>`;
@@ -172,20 +189,20 @@ Module.register("MMM-MusicAssistant-Controller", {
   getDom() {
     const root = document.createElement("section");
     root.className = this.rootClassName();
-    root.setAttribute("aria-label", "Music Assistant controller");
+    root.setAttribute("aria-label", this.translate("CONTROLLER_LABEL"));
     root.innerHTML = `
       <div class="mac-status" role="status"></div>
       ${this.playerSelectorMarkup()}
       <div class="mac-now">
         <div class="mac-art-wrap"><img class="mac-art" alt="" hidden><i class="fa fa-music mac-art-placeholder" aria-hidden="true"></i></div>
         <div class="mac-meta">
-          <div class="mac-title">Nothing playing</div>
+          <div class="mac-title">${this.translate("NOTHING_PLAYING")}</div>
           <div class="mac-artist"></div>
           <div class="mac-progress-row"><span class="mac-elapsed">0:00</span><progress class="mac-progress" max="1" value="0"></progress><span class="mac-duration">0:00</span></div>
         </div>
       </div>
-      <div class="mac-controls" aria-label="Playback controls"></div>
-      <div class="mac-playlists" aria-label="Playlists"></div>`;
+      <div class="mac-controls" aria-label="${this.translate("PLAYBACK_CONTROLS")}"></div>
+      <div class="mac-playlists" aria-label="${this.translate("PLAYLISTS")}"></div>`;
     this.root = root;
     this.statusEl = root.querySelector(".mac-status");
     this.playerButton = root.querySelector(".mac-player");
@@ -194,11 +211,11 @@ Module.register("MMM-MusicAssistant-Controller", {
       this.playerButton.addEventListener("click", () => this.togglePlayerMenu());
     }
     const controls = [
-      ["previous", "fa-step-backward", "Previous"],
-      ["volumeDown", "fa-volume-down", "Volume down"],
-      ["playPause", "fa-play", "Play or pause"],
-      ["volumeUp", "fa-volume-up", "Volume up"],
-      ["next", "fa-step-forward", "Next"]
+      ["previous", "fa-step-backward", this.translate("PREVIOUS")],
+      ["volumeDown", "fa-volume-down", this.translate("VOLUME_DOWN")],
+      ["playPause", "fa-play", this.translate("PLAY_PAUSE")],
+      ["volumeUp", "fa-volume-up", this.translate("VOLUME_UP")],
+      ["next", "fa-step-forward", this.translate("NEXT")]
     ];
     for (const [action, icon, label] of controls) {
       const button = this.makeButton(label, icon);
@@ -246,7 +263,8 @@ Module.register("MMM-MusicAssistant-Controller", {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "mac-tile mac-focusable";
-    button.setAttribute("aria-label", `Play ${tile.label || "playlist"}`);
+    const tileLabel = tile.label || this.translate("PLAYLIST");
+    button.setAttribute("aria-label", this.translate("PLAY_PLAYLIST", { playlist: tileLabel }));
     if (tile.cover) {
       const image = document.createElement("img");
       image.src = tile.cover;
@@ -259,7 +277,7 @@ Module.register("MMM-MusicAssistant-Controller", {
       button.appendChild(icon);
     }
     const label = document.createElement("span");
-    label.textContent = tile.label || "Playlist";
+    label.textContent = tileLabel;
     button.appendChild(label);
     button.addEventListener("click", () => this.playPlaylist(tile.uri));
     return button;
@@ -296,18 +314,23 @@ Module.register("MMM-MusicAssistant-Controller", {
   renderState() {
     if (!this.domReady) return;
     const player = this.players[this.selectedPlayerId] || {};
+    const queue = this.selectedQueue();
     const state = MusicAssistantControllerCore.normalizeState(
       player,
-      this.selectedQueue(),
+      queue,
       this.config.serverUrl
     );
+    if (!player.display_name && !player.name) state.playerName = this.translate("PLAYER");
+    if (!queue.current_item && !player.current_media?.title) {
+      state.title = this.translate("NOTHING_PLAYING");
+    }
     this.root.dataset.connection = this.connectionState;
     this.statusEl.textContent = this.statusText();
     if (this.playerButton) {
-      this.playerButton.querySelector("span").textContent = state.playerName || "Select a player";
+      this.playerButton.querySelector("span").textContent = state.playerName || this.translate("SELECT_PLAYER");
     }
     this.root.querySelector(".mac-title").textContent = state.title;
-    this.root.querySelector(".mac-artist").textContent = state.artist || state.state;
+    this.root.querySelector(".mac-artist").textContent = state.artist || this.playbackStateText(state.state);
     const art = this.root.querySelector(".mac-art");
     const placeholder = this.root.querySelector(".mac-art-placeholder");
     if (state.artwork) {
@@ -324,6 +347,17 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.currentState = state;
     this.renderProgress();
     this.renderPlayerList();
+    this.broadcastState(state);
+  },
+
+  playbackStateText(state) {
+    const key = ({
+      playing: "STATE_PLAYING",
+      paused: "STATE_PAUSED",
+      stopped: "STATE_STOPPED",
+      idle: "STATE_IDLE"
+    })[state] || "STATE_UNKNOWN";
+    return this.translate(key);
   },
 
   renderProgress() {
@@ -347,26 +381,53 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.connectionState = state;
     this.errorMessage = detail || "";
     this.renderState();
+    this.broadcastConnection();
   },
 
   statusText() {
     if (this.connectionState === "connected") {
-      if (!this.selectedPlayerId) return "Connected · no players available";
+      if (!this.selectedPlayerId) return this.translate("CONNECTED_NO_PLAYERS");
       if (!this.players[this.selectedPlayerId]) {
         return this.config.playerId
-          ? "Connected · configured player unavailable"
-          : "Connected · selected player unavailable";
+          ? this.translate("CONFIGURED_PLAYER_UNAVAILABLE")
+          : this.translate("SELECTED_PLAYER_UNAVAILABLE");
       }
       return "";
     }
-    if (this.connectionState === "connecting") return "Connecting to Music Assistant…";
-    if (this.connectionState === "reconnecting") return "Connection lost · reconnecting…";
-    if (this.connectionState === "error") return this.errorMessage || "Music Assistant error";
-    return "Disconnected";
+    if (this.connectionState === "connecting") return this.translate("CONNECTING");
+    if (this.connectionState === "reconnecting") return this.translate("RECONNECTING");
+    if (this.connectionState === "error") return this.errorMessage || this.translate("MUSIC_ASSISTANT_ERROR");
+    return this.translate("DISCONNECTED");
+  },
+
+  broadcastConnection() {
+    if (typeof this.sendNotification !== "function") return;
+    const payload = { state: this.connectionState, error: this.errorMessage || "" };
+    const signature = JSON.stringify(payload);
+    if (signature === this.lastConnectionBroadcast) return;
+    this.lastConnectionBroadcast = signature;
+    this.sendNotification("MUSIC_CONNECTION_CHANGED", payload);
+  },
+
+  broadcastState(state) {
+    if (typeof this.sendNotification !== "function" || !state) return;
+    const payload = {
+      playerId: state.playerId || this.selectedPlayerId || "",
+      state: state.state,
+      title: state.title,
+      artist: state.artist,
+      volume: state.volume,
+      elapsed: state.elapsed,
+      duration: state.duration
+    };
+    const signature = JSON.stringify(payload);
+    if (signature === this.lastBroadcastState) return;
+    this.lastBroadcastState = signature;
+    this.sendNotification("MUSIC_STATE_CHANGED", payload);
   },
 
   async sendBuilt(command) {
-    if (!this.connection || this.connectionState !== "connected" || !this.selectedPlayerId) return;
+    if (!this.connection || this.connectionState !== "connected" || !command) return;
     try {
       await this.connection.send(command.command, command.args);
     } catch (error) {
@@ -377,29 +438,61 @@ Module.register("MMM-MusicAssistant-Controller", {
     }
   },
 
-  runAction(action) {
+  targetPlayerId(payload) {
+    return this.config.playerId || payload?.playerId || this.selectedPlayerId || "";
+  },
+
+  runAction(action, payload) {
     const Core = MusicAssistantControllerCore;
-    const player = this.players[this.selectedPlayerId];
-    if (!player) return;
-    if (action === "playPause") return this.sendBuilt(Core.COMMANDS.playPause(player.player_id));
-    if (action === "next") return this.sendBuilt(Core.COMMANDS.next(player.player_id));
-    if (action === "previous") return this.sendBuilt(Core.COMMANDS.previous(player.player_id));
+    const playerId = this.targetPlayerId(payload);
+    if (!playerId) return;
+    const player = this.players[playerId] || {};
+    if (action === "play") return this.sendBuilt(Core.COMMANDS.play(playerId));
+    if (action === "pause") return this.sendBuilt(Core.COMMANDS.pause(playerId));
+    if (action === "stop") return this.sendBuilt(Core.COMMANDS.stop(playerId));
+    if (action === "playPause") return this.sendBuilt(Core.COMMANDS.playPause(playerId));
+    if (action === "next") return this.sendBuilt(Core.COMMANDS.next(playerId));
+    if (action === "previous") return this.sendBuilt(Core.COMMANDS.previous(playerId));
     if (action === "volumeUp" || action === "volumeDown") {
       const direction = action === "volumeUp" ? 1 : -1;
       const level = (player.group_volume ?? player.volume_level ?? 0) + direction * this.config.volumeStep;
-      return this.sendBuilt(Core.COMMANDS.volume(player.player_id, level));
+      return this.sendBuilt(Core.COMMANDS.volume(playerId, level));
     }
   },
 
   playPlaylist(uri) {
-    if (!uri || !this.selectedPlayerId) return;
-    return this.sendBuilt(MusicAssistantControllerCore.COMMANDS.playlist(this.selectedPlayerId, uri));
+    return this.playUri(uri);
   },
 
-  notificationReceived(notification) {
+  playUri(payload) {
+    const uri = typeof payload === "string" ? payload : payload?.uri;
+    const playerId = this.targetPlayerId(typeof payload === "object" ? payload : null);
+    if (typeof uri !== "string" || !uri.trim() || !playerId) return;
+    return this.sendBuilt(MusicAssistantControllerCore.COMMANDS.playlist(playerId, uri.trim()));
+  },
+
+  setVolume(payload) {
+    const volume = typeof payload === "object" && payload !== null ? payload.volume : payload;
+    const playerId = this.targetPlayerId(typeof payload === "object" ? payload : null);
+    if (typeof volume !== "number" || !Number.isFinite(volume) || !playerId) return;
+    return this.sendBuilt(MusicAssistantControllerCore.COMMANDS.volume(playerId, volume));
+  },
+
+  selectPlayerFromNotification(payload) {
+    if (this.config.playerId) return;
+    const playerId = typeof payload === "string" ? payload : payload?.playerId;
+    if (!playerId || !this.availablePlayers().some((player) => player.player_id === playerId)) return;
+    this.selectPlayer(playerId);
+  },
+
+  notificationReceived(notification, payload) {
     const action = MusicAssistantControllerCore.notificationAction(notification);
     if (!action) return;
-    if (["playPause", "next", "previous", "volumeUp", "volumeDown"].includes(action)) this.runAction(action);
+    if (["play", "pause", "stop", "playPause", "next", "previous", "volumeUp", "volumeDown"].includes(action)) {
+      this.runAction(action, payload);
+    } else if (action === "playUri") this.playUri(payload);
+    else if (action === "setVolume") this.setVolume(payload);
+    else if (action === "selectPlayer") this.selectPlayerFromNotification(payload);
     else if (action === "focusNext") this.moveFocus(1);
     else if (action === "focusPrevious") this.moveFocus(-1);
     else if (action === "activate") this.activateFocus();
