@@ -149,3 +149,21 @@ test("omits player selector markup when playerId is configured", () => {
   assert.match(selectableMarkup, /mac-player/);
   assert.match(selectableMarkup, /mac-player-list/);
 });
+
+test("compact mode adds an opt-in root class without changing the default", () => {
+  let definition;
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: {
+      register(_name, moduleDefinition) {
+        definition = moduleDefinition;
+      }
+    }
+  });
+
+  assert.equal(definition.rootClassName.call({ config: { compact: false } }), "mac");
+  assert.equal(definition.rootClassName.call({ config: { compact: true } }), "mac mac-compact");
+});

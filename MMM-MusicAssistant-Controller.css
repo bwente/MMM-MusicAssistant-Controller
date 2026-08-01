@@ -85,6 +85,7 @@
   font-size: 27px;
 }
 .mac-playlists { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.mac-playlists:empty { display: none; }
 .mac-tile {
   display: flex;
   min-width: 0;
@@ -106,20 +107,42 @@
   outline-offset: 2px;
 }
 
-.mac.mac-compact { padding: 8px; font-size: 16px; }
+.mac.mac-compact {
+  width: min(100%, calc(100vw - 24px), 420px);
+  max-height: none;
+  padding: 9px;
+  border-radius: 10px;
+  font-size: 15px;
+}
 .mac-compact .mac-status { min-height: 20px; font-size: 13px; }
 .mac-compact .mac-player { min-height: 40px; padding: 5px 11px; }
-.mac-compact .mac-now { min-height: 98px; gap: 12px; padding: 8px 0; }
-.mac-compact .mac-art-wrap { width: 84px; height: 84px; flex-basis: 84px; border-radius: 8px; }
-.mac-compact .mac-art-placeholder { font-size: 32px; }
-.mac-compact .mac-title { font-size: 21px; }
-.mac-compact .mac-artist { font-size: 16px; }
-.mac-compact .mac-progress-row { margin-top: 10px; font-size: 12px; }
-.mac-compact .mac-control { min-height: 50px; border-radius: 9px; font-size: 22px; }
-.mac-compact .mac-playlists { gap: 8px; margin-top: 8px; }
-.mac-compact .mac-tile { min-height: 68px; padding: 7px; gap: 4px; border-radius: 9px; }
-.mac-compact .mac-tile i { font-size: 22px; }
-.mac-compact .mac-tile img { width: 34px; height: 34px; }
+.mac-compact .mac-now { min-height: 82px; gap: 10px; padding: 7px 0; }
+.mac-compact .mac-art-wrap { width: 68px; height: 68px; flex-basis: 68px; border-radius: 7px; }
+.mac-compact .mac-art-placeholder { font-size: 27px; }
+.mac-compact .mac-title { font-size: 18px; }
+.mac-compact .mac-artist { margin-top: 2px; font-size: 14px; }
+.mac-compact .mac-progress-row { gap: 6px; margin-top: 7px; font-size: 11px; }
+.mac-compact .mac-progress { height: 6px; }
+.mac-compact .mac-controls { gap: 6px; }
+.mac-compact .mac-control { min-height: 44px; border-radius: 7px; font-size: 19px; }
+.mac-compact .mac-playlists {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+.mac-compact .mac-tile {
+  min-height: 52px;
+  padding: 7px 9px;
+  justify-content: flex-start;
+  flex-direction: row;
+  gap: 8px;
+  border-radius: 7px;
+  text-align: left;
+}
+.mac-compact .mac-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.mac-compact .mac-tile i { width: 24px; flex: 0 0 24px; font-size: 20px; text-align: center; }
+.mac-compact .mac-tile img { width: 32px; height: 32px; flex: 0 0 32px; }
+.mac-compact .mac-tile span { flex: 1; }
 
 @media (max-width: 700px) {
   .mac { padding: 8px; }

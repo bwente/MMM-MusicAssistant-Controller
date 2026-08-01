@@ -165,9 +165,13 @@ Module.register("MMM-MusicAssistant-Controller", {
       <div class="mac-player-list" role="listbox" hidden></div>`;
   },
 
+  rootClassName() {
+    return `mac${this.config.compact ? " mac-compact" : ""}`;
+  },
+
   getDom() {
     const root = document.createElement("section");
-    root.className = `mac${this.config.compact ? " mac-compact" : ""}`;
+    root.className = this.rootClassName();
     root.setAttribute("aria-label", "Music Assistant controller");
     root.innerHTML = `
       <div class="mac-status" role="status"></div>

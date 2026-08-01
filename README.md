@@ -19,7 +19,7 @@ MagicMirror module.
 From the MagicMirror `modules` directory:
 
 ```sh
-git clone https://github.com/your-account/MMM-MusicAssistant-Controller.git
+git clone https://github.com/bwente/MMM-MusicAssistant-Controller.git
 cd MMM-MusicAssistant-Controller
 npm test
 ```
@@ -116,8 +116,33 @@ one available player. Player names are display-only and are never used for resol
 
 Configuration keys are case-sensitive: use `playerId` with a capital `I`, not `playerid`.
 
-The standard layout remains the default. Set `compact: true` when the module shares a page with
-other content or needs less vertical space.
+The standard touchscreen layout remains the default.
+
+### Compact layout for standard mirrors
+
+Set `compact: true` when the controller is a supplementary module in a normal MagicMirror region.
+Compact mode is capped at 420px wide, uses smaller now-playing artwork and controls, and arranges
+playlist launchers in a two-column grid. It does not require Seymour or a fullscreen position.
+
+```js
+{
+  module: "MMM-MusicAssistant-Controller",
+  position: "top_right",
+  config: {
+    serverUrl: "http://music-assistant.local:8095",
+    tokenFile: "/absolute/private/path/music-assistant-token.js",
+    playerId: "explicit-player-id",
+    compact: true,
+    playlists: [
+      { label: "Focus", uri: "library://playlist/1", icon: "bullseye" },
+      { label: "Radio", uri: "library://playlist/2", icon: "radio" }
+    ]
+  }
+}
+```
+
+Compact mode also works in `top_left`, `bottom_left`, `bottom_right`, and center regions. The
+module respects the width supplied by its MagicMirror region and does not claim fullscreen space.
 
 ### Finding a player ID
 
