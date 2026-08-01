@@ -72,7 +72,6 @@ Add the module to `config/config.js`:
   config: {
     serverUrl: "http://music-assistant.local:8095",
     tokenFile: "/absolute/private/path/music-assistant-token.js",
-    playerId: "explicit-player-id",
     compact: false,
     volumeStep: 5,
     playlists: [
@@ -106,7 +105,8 @@ Add the module to `config/config.js`:
 }
 ```
 
-The addresses, player ID, and playlist IDs above are examples only.
+The address and playlist IDs above are examples only. With no `playerId` configured, users can
+select from the players reported by Music Assistant.
 
 ### Options
 
@@ -144,7 +144,6 @@ not require a fullscreen layout.
   config: {
     serverUrl: "http://music-assistant.local:8095",
     tokenFile: "/absolute/private/path/music-assistant-token.js",
-    playerId: "explicit-player-id",
     compact: true,
     playlists: [
       { label: "Focus", uri: "library://playlist/1", icon: "bullseye" },
