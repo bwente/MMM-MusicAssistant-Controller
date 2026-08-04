@@ -37,7 +37,9 @@ test("authenticates after server info and never places token in the URL", async 
     args: { token: "private-token", device_name: "MagicMirror" }
   });
   socket.receive({ message_id: "1", result: { user: { name: "Test" } } });
-  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => {
+    setImmediate(resolve);
+  });
   assert.equal(states.at(-1), "connected");
   connection.stop();
 });
@@ -86,7 +88,9 @@ test("automatically creates a new socket after an unexpected close", async () =>
   });
   connection.start();
   FakeWebSocket.instances[0].onclose();
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  await new Promise((resolve) => {
+    setTimeout(resolve, 10);
+  });
   assert.equal(FakeWebSocket.instances.length, 2);
   connection.stop();
 });

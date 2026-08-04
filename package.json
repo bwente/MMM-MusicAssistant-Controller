@@ -4,7 +4,9 @@
   "description": "A compact MagicMirror controller for Music Assistant",
   "main": "MMM-MusicAssistant-Controller.js",
   "scripts": {
-    "test": "node --test"
+    "lint": "eslint .",
+    "test": "node --test",
+    "check": "npm run lint && npm test"
   },
   "keywords": [
     "magicmirror",
@@ -27,5 +29,9 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5"
   }
 }

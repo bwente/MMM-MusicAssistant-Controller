@@ -1,4 +1,3 @@
-/* global Module, Log, MusicAssistantControllerCore, MusicAssistantConnection */
 "use strict";
 
 Module.register("MMM-MusicAssistant-Controller", {
@@ -143,7 +142,9 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.selectedPlayerId = playerId;
     try {
       localStorage.setItem(`${this.name}:${this.identifier}:playerId`, playerId);
-    } catch (_) {}
+    } catch {
+      // Player selection still works when local storage is unavailable.
+    }
     this.playerMenuOpen = false;
     this.renderState();
   },
@@ -151,7 +152,7 @@ Module.register("MMM-MusicAssistant-Controller", {
   loadStoredPlayer() {
     try {
       return localStorage.getItem(`${this.name}:${this.identifier}:playerId`) || "";
-    } catch (_) {
+    } catch {
       return "";
     }
   },

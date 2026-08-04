@@ -47,7 +47,7 @@ Keep the token outside the public module and MagicMirror configuration. Copy
 "use strict";
 
 module.exports = {
-  token: "replace-with-a-music-assistant-long-lived-token"
+  token: "replace-with-a-music-assistant-long-lived-token",
 };
 ```
 
@@ -78,31 +78,31 @@ Add the module to `config/config.js`:
       {
         label: "Focus",
         uri: "library://playlist/1",
-        icon: "bullseye"
+        icon: "bullseye",
       },
       {
         label: "Relax",
         uri: "library://playlist/2",
-        icon: "couch"
+        icon: "couch",
       },
       {
         label: "News",
         uri: "library://playlist/3",
-        icon: "newspaper"
+        icon: "newspaper",
       },
       {
         label: "Party",
         uri: "library://playlist/4",
-        icon: "music"
+        icon: "music",
       },
       {
         label: "Radio",
         uri: "library://playlist/5",
-        icon: "radio"
-      }
-    ]
-  }
-}
+        icon: "radio",
+      },
+    ],
+  },
+},
 ```
 
 The address and playlist IDs above are examples only. With no `playerId` configured, users can
@@ -147,10 +147,10 @@ not require a fullscreen layout.
     compact: true,
     playlists: [
       { label: "Focus", uri: "library://playlist/1", icon: "bullseye" },
-      { label: "Radio", uri: "library://playlist/2", icon: "radio" }
-    ]
-  }
-}
+      { label: "Radio", uri: "library://playlist/2", icon: "radio" },
+    ],
+  },
+},
 ```
 
 Compact mode also works in `top_left`, `bottom_left`, `bottom_right`, and center regions. The
@@ -224,11 +224,11 @@ Commands that accept payloads use these forms:
 ```js
 this.sendNotification("MUSIC_PLAY_URI", {
   uri: "library://playlist/1",
-  playerId: "optional-player-id"
+  playerId: "optional-player-id",
 });
 this.sendNotification("MUSIC_SET_VOLUME", {
   volume: 35,
-  playerId: "optional-player-id"
+  playerId: "optional-player-id",
 });
 this.sendNotification("MUSIC_SELECT_PLAYER", { playerId: "player-id" });
 ```
@@ -286,6 +286,8 @@ recommended for a 1024×600 display.
 ## Testing
 
 ```sh
+npm install
+npm run lint
 npm test
 ```
 
@@ -314,6 +316,21 @@ For a live smoke test:
 Music Assistant exposes generated API documentation at `http://YOUR_MA_SERVER:8095/api-docs`.
 Its public [API overview](https://www.music-assistant.io/api/) and official frontend client are
 the protocol references used by this module.
+
+## Update
+
+From the installed module directory:
+
+```sh
+cd ~/MagicMirror/modules/MMM-MusicAssistant-Controller
+git pull --ff-only
+npm install --omit=dev
+```
+
+Restart MagicMirror after updating. The authentication token and MagicMirror configuration are
+stored outside this repository and are not changed by an update.
+
+See [CHANGELOG.md](CHANGELOG.md) for release details.
 
 ## License
 
