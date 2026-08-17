@@ -41,7 +41,7 @@ Module.register("MMM-MusicAssistant-Controller", {
   start() {
     this.players = {};
     this.queues = {};
-    this.selectedPlayerId = this.config.playerId || this.loadStoredPlayer();
+    this.selectedPlayerId = this.fixedPlayerId() || this.loadStoredPlayer();
     this.connectionState = "disconnected";
     this.errorMessage = "";
     this.focusIndex = 0;
@@ -125,17 +125,31 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   resolveSelectedPlayer() {
-    if (this.config.playerId) {
-      this.selectedPlayerId = this.config.playerId;
+    const fixedPlayerId = this.fixedPlayerId();
+    if (fixedPlayerId) {
+      this.selectedPlayerId = fixedPlayerId;
       this.playerMenuOpen = false;
       return;
     }
     const player = MusicAssistantControllerCore.resolvePlayer(
-      this.players,
-      this.config.playerId,
+      this.availablePlayers(),
+      "",
       this.selectedPlayerId
     );
     if (player && player.player_id !== this.selectedPlayerId) this.selectPlayer(player.player_id);
+    if (!player && this.configuredPlayerIds().length) this.selectedPlayerId = "";
+  },
+
+  fixedPlayerId() {
+    return typeof this.config.playerId === "string" ? this.config.playerId.trim() : "";
+  },
+
+  configuredPlayerIds() {
+    if (!Array.isArray(this.config.playerId)) return [];
+    return [...new Set(this.config.playerId
+      .filter((playerId) => typeof playerId === "string")
+      .map((playerId) => playerId.trim())
+      .filter(Boolean))];
   },
 
   selectPlayer(playerId) {
@@ -164,17 +178,22 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   availablePlayers() {
+    const configuredPlayerIds = this.configuredPlayerIds();
     return Object.values(this.players).filter((player) =>
-      player && player.player_id && player.available !== false && player.enabled !== false
+      player && player.player_id && player.available !== false && player.enabled !== false &&
+      (!configuredPlayerIds.length || configuredPlayerIds.includes(player.player_id))
     );
   },
 
   hidesPlayerSelector() {
-    return Boolean(this.config.playerId) || this.availablePlayers().length <= 1;
+    if (this.fixedPlayerId()) return true;
+    const configuredPlayerIds = this.configuredPlayerIds();
+    if (configuredPlayerIds.length) return configuredPlayerIds.length <= 1;
+    return this.availablePlayers().length <= 1;
   },
 
   playerSelectorMarkup() {
-    if (this.config.playerId) return "";
+    if (this.fixedPlayerId()) return "";
     return `
       <button class="mac-player mac-focusable" type="button" aria-haspopup="listbox">
         <i class="fa fa-volume-up" aria-hidden="true"></i><span>${this.translate("SELECT_PLAYER")}</span>
@@ -389,7 +408,7 @@ Module.register("MMM-MusicAssistant-Controller", {
     if (this.connectionState === "connected") {
       if (!this.selectedPlayerId) return this.translate("CONNECTED_NO_PLAYERS");
       if (!this.players[this.selectedPlayerId]) {
-        return this.config.playerId
+        return this.fixedPlayerId()
           ? this.translate("CONFIGURED_PLAYER_UNAVAILABLE")
           : this.translate("SELECTED_PLAYER_UNAVAILABLE");
       }
@@ -440,7 +459,11 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   targetPlayerId(payload) {
-    return this.config.playerId || payload?.playerId || this.selectedPlayerId || "";
+    const fixedPlayerId = this.fixedPlayerId();
+    if (fixedPlayerId) return fixedPlayerId;
+    const playerId = payload?.playerId || this.selectedPlayerId || "";
+    const configuredPlayerIds = this.configuredPlayerIds();
+    return configuredPlayerIds.length && !configuredPlayerIds.includes(playerId) ? "" : playerId;
   },
 
   runAction(action, payload) {
@@ -480,7 +503,7 @@ Module.register("MMM-MusicAssistant-Controller", {
   },
 
   selectPlayerFromNotification(payload) {
-    if (this.config.playerId) return;
+    if (this.fixedPlayerId()) return;
     const playerId = typeof payload === "string" ? payload : payload?.playerId;
     if (!playerId || !this.availablePlayers().some((player) => player.player_id === playerId)) return;
     this.selectPlayer(playerId);

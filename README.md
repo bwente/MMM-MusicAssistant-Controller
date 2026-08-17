@@ -114,17 +114,27 @@ select from the players reported by Music Assistant.
 | --- | --- | --- | --- |
 | `serverUrl` | string | `http://music-assistant.local:8095` | Music Assistant HTTP(S) base URL. |
 | `tokenFile` | string | empty | Required absolute path to the private CommonJS token file. |
-| `playerId` | string | empty | Hardcode an exact player ID and hide the player selector. |
+| `playerId` | string or string[] | empty | Fix one exact player, or limit the selector to a list of player IDs. |
 | `compact` | boolean | `false` | Use a shorter, denser layout while retaining large touch targets. |
 | `volumeStep` | number | `5` | Percentage-point change for volume up/down. |
 | `playlists` | array | `[]` | Launcher tiles; each accepts `label`, `uri`, `icon`, or `cover`. |
 | `reconnectBaseDelay` | number | `1000` | Initial reconnect delay in milliseconds. |
 | `reconnectMaxDelay` | number | `30000` | Maximum reconnect delay in milliseconds. |
 
-A configured `playerId` requires that exact player and removes the selector. When `playerId` is
-empty, the module restores the last locally selected player and then falls back to the first
-available player. The selector is also hidden automatically whenever Music Assistant reports only
-one available player. Player names are display-only and are never used for resolution.
+A string `playerId` requires that exact player and removes the selector. An array limits the
+selector to matching players while still allowing the user to choose between them:
+
+```js
+playerId: ["living-room-player-id", "kitchen-player-id"],
+```
+
+When `playerId` is empty, an empty array, or omitted, the module restores the last locally selected
+player and then falls back to the first available player. With an array, a stored selection is
+restored only when it remains in the configured list. Unknown, disabled, and unavailable players
+are omitted from its choices. A one-item array hides the selector like a string; an array with two
+or more IDs keeps the selector visible. Without an allow-list, the selector is hidden automatically
+when Music Assistant reports only one available player. Player names are display-only and are
+never used for resolution.
 
 Configuration keys are case-sensitive: use `playerId` with a capital `I`, not `playerid`.
 
@@ -234,9 +244,10 @@ this.sendNotification("MUSIC_SELECT_PLAYER", { playerId: "player-id" });
 ```
 
 `MUSIC_PLAY_URI` also accepts a URI string, `MUSIC_SET_VOLUME` accepts a number, and
-`MUSIC_SELECT_PLAYER` accepts a player-ID string. When this module has a configured `playerId`,
-that fixed player always wins and `MUSIC_SELECT_PLAYER` is ignored. This prevents an automation
-from accidentally controlling a different room.
+`MUSIC_SELECT_PLAYER` accepts a player-ID string. When `playerId` is a string, that fixed player
+always wins and `MUSIC_SELECT_PLAYER` is ignored. When it is an array, notification targets and
+selections must be in that list. This prevents an automation from accidentally controlling a
+different room.
 
 Explicit `MUSIC_PLAY`, `MUSIC_PAUSE`, and `MUSIC_STOP` notifications are preferable to toggles in
 scheduled automations. For example, a scheduler can send `MUSIC_PLAY_URI` at 14:00 and

@@ -83,7 +83,9 @@ test("hides player selection for a configured player or one available player", (
   const onePlayer = {
     config: { playerId: "" },
     players: { p1: { player_id: "p1", available: true, enabled: true } },
-    availablePlayers: definition.availablePlayers
+    availablePlayers: definition.availablePlayers,
+    configuredPlayerIds: definition.configuredPlayerIds,
+    fixedPlayerId: definition.fixedPlayerId
   };
   assert.equal(definition.hidesPlayerSelector.call(onePlayer), true);
 
@@ -93,7 +95,9 @@ test("hides player selection for a configured player or one available player", (
       p1: { player_id: "p1", available: true, enabled: true },
       p2: { player_id: "p2", available: true, enabled: true }
     },
-    availablePlayers: definition.availablePlayers
+    availablePlayers: definition.availablePlayers,
+    configuredPlayerIds: definition.configuredPlayerIds,
+    fixedPlayerId: definition.fixedPlayerId
   };
   assert.equal(definition.hidesPlayerSelector.call(twoPlayers), false);
   twoPlayers.config.playerId = "p1";
@@ -116,7 +120,8 @@ test("configured player resolution never falls back to another player", () => {
   const instance = {
     config: { playerId: "fixed" },
     selectedPlayerId: "other",
-    playerMenuOpen: true
+    playerMenuOpen: true,
+    fixedPlayerId: definition.fixedPlayerId
   };
 
   definition.resolveSelectedPlayer.call(instance);
@@ -141,16 +146,67 @@ test("omits player selector markup when playerId is configured", () => {
 
   const fixedMarkup = definition.playerSelectorMarkup.call({
     config: { playerId: "fixed-player" },
+    fixedPlayerId: definition.fixedPlayerId,
     translate: (key) => key
   });
   const selectableMarkup = definition.playerSelectorMarkup.call({
     config: { playerId: "" },
+    fixedPlayerId: definition.fixedPlayerId,
     translate: (key) => key
   });
 
   assert.equal(fixedMarkup, "");
   assert.match(selectableMarkup, /mac-player/);
   assert.match(selectableMarkup, /mac-player-list/);
+});
+
+test("playerId arrays limit the selectable players without fixing the selection", () => {
+  let definition;
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: { register(_name, moduleDefinition) { definition = moduleDefinition; } },
+    MusicAssistantControllerCore: Core
+  });
+  const instance = {
+    config: { playerId: ["p2", " p1 ", "p2", "missing"] },
+    players: {
+      p1: { player_id: "p1", available: true, enabled: true },
+      p2: { player_id: "p2", available: true, enabled: true },
+      p3: { player_id: "p3", available: true, enabled: true }
+    },
+    selectedPlayerId: "p3",
+    playerMenuOpen: false,
+    configuredPlayerIds: definition.configuredPlayerIds,
+    fixedPlayerId: definition.fixedPlayerId,
+    availablePlayers: definition.availablePlayers,
+    selectPlayer(playerId) { this.selectedPlayerId = playerId; }
+  };
+
+  assert.deepEqual(
+    Array.from(definition.availablePlayers.call(instance), (player) => player.player_id),
+    ["p1", "p2"]
+  );
+  assert.equal(definition.hidesPlayerSelector.call(instance), false);
+  definition.resolveSelectedPlayer.call(instance);
+  assert.equal(instance.selectedPlayerId, "p1");
+  assert.equal(definition.targetPlayerId.call(instance, { playerId: "p2" }), "p2");
+  assert.equal(definition.targetPlayerId.call(instance, { playerId: "p3" }), "");
+
+  instance.players.p2.available = false;
+  assert.equal(definition.availablePlayers.call(instance).length, 1);
+  assert.equal(definition.hidesPlayerSelector.call(instance), false);
+
+  instance.config.playerId = ["p1"];
+  assert.equal(definition.hidesPlayerSelector.call(instance), true);
+
+  instance.config.playerId = [];
+  assert.deepEqual(
+    Array.from(definition.availablePlayers.call(instance), (player) => player.player_id),
+    ["p1", "p3"]
+  );
 });
 
 test("compact mode adds an opt-in root class without changing the default", () => {
@@ -210,6 +266,8 @@ test("notification payload commands respect fixed-player scope", () => {
   const instance = {
     config: { playerId: "fixed" },
     selectedPlayerId: "selected",
+    fixedPlayerId: definition.fixedPlayerId,
+    configuredPlayerIds: definition.configuredPlayerIds,
     targetPlayerId: definition.targetPlayerId,
     sendBuilt(command) { sent.push(command); }
   };

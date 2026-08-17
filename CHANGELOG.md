@@ -10,6 +10,7 @@ All notable changes to this project are documented in this file.
 - Basic update instructions and consistently formatted configuration examples.
 - ESLint checks, a reproducible development lockfile, and weekly Dependabot updates.
 - Project code of conduct and release changelog.
+- Player allow-lists by configuring `playerId` as an array of exact player IDs.
 
 ## [1.3.0] - 2026-08-01
 
