@@ -11,6 +11,9 @@ All notable changes to this project are documented in this file.
 - ESLint checks, a reproducible development lockfile, and weekly Dependabot updates.
 - Project code of conduct and release changelog.
 - Player allow-lists by configuring `playerId` as an array of exact player IDs.
+- GitHub Actions CI across the supported Node.js range.
+- Explicit MagicMirror 2.25.0 minimum version and package author metadata.
+- Broader ignore rules for local token and environment files.
 
 ## [1.3.0] - 2026-08-01
 

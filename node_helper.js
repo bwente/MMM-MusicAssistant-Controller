@@ -4,6 +4,8 @@ const NodeHelper = require("node_helper");
 const path = require("path");
 
 module.exports = NodeHelper.create({
+  requiresVersion: "2.25.0",
+
   socketNotificationReceived(notification, payload) {
     if (notification !== "MA_LOAD_TOKEN") return;
     const requestId = payload && payload.requestId;

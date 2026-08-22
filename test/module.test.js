@@ -24,6 +24,12 @@ test("resolves dependency scripts through the MagicMirror module directory", () 
   };
   vm.runInNewContext(source, sandbox);
 
+  assert.equal(definition.requiresVersion, "2.25.0");
+  assert.match(
+    fs.readFileSync(path.join(__dirname, "..", "node_helper.js"), "utf8"),
+    /requiresVersion:\s*"2\.25\.0"/
+  );
+
   const moduleInstance = {
     file(relativePath) {
       return `/modules/MMM-MusicAssistant-Controller/${relativePath}`;

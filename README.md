@@ -21,7 +21,7 @@ MagicMirror module.
 
 ## Requirements
 
-- MagicMirror²
+- MagicMirror² 2.25.0 or newer
 - Music Assistant 2.9 or newer
 - A Music Assistant long-lived access token
 - A browser that can reach the Music Assistant server
@@ -38,6 +38,10 @@ npm test
 
 This module has no production npm dependencies.
 
+The module declares `requiresVersion: "2.25.0"` in both its renderer and node helper. MagicMirror
+2.25.0 is the first release that requires Node.js 18, matching this package's supported Node.js
+runtime.
+
 ## Authentication
 
 Keep the token outside the public module and MagicMirror configuration. Copy
@@ -47,7 +51,7 @@ Keep the token outside the public module and MagicMirror configuration. Copy
 "use strict";
 
 module.exports = {
-  token: "replace-with-a-music-assistant-long-lived-token",
+  token: "YOUR_MUSIC_ASSISTANT_LONG_LIVED_TOKEN",
 };
 ```
 

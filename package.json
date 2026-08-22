@@ -2,6 +2,7 @@
   "name": "mmm-musicassistant-controller",
   "version": "1.3.0",
   "description": "A compact MagicMirror controller for Music Assistant",
+  "author": "Brian Wente",
   "main": "MMM-MusicAssistant-Controller.js",
   "scripts": {
     "lint": "eslint .",

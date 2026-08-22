@@ -1,6 +1,8 @@
 "use strict";
 
 Module.register("MMM-MusicAssistant-Controller", {
+  requiresVersion: "2.25.0",
+
   defaults: {
     serverUrl: "http://music-assistant.local:8095",
     tokenFile: "",
