@@ -55,6 +55,7 @@ Module.register("MMM-MusicAssistant-Controller", {
     this.connection = null;
     this.lastBroadcastState = "";
     this.lastConnectionBroadcast = "";
+    this.lastPlayerMismatchWarning = "";
     this.boundFitViewport = () => this.fitViewport();
     if (!this.config.tokenFile) {
       this.setStatus("error", this.translate("CONFIGURE_TOKEN_FILE"));
@@ -101,6 +102,7 @@ Module.register("MMM-MusicAssistant-Controller", {
       ]);
       this.players = this.indexBy(results[0], "player_id");
       this.queues = this.indexBy(results[1], "queue_id");
+      this.reportConfiguredPlayerMismatch();
       this.resolveSelectedPlayer();
       this.setStatus("connected");
     } catch (error) {
@@ -152,6 +154,31 @@ Module.register("MMM-MusicAssistant-Controller", {
       .filter((playerId) => typeof playerId === "string")
       .map((playerId) => playerId.trim())
       .filter(Boolean))];
+  },
+
+  allConfiguredPlayerIds() {
+    const fixedPlayerId = this.fixedPlayerId();
+    return fixedPlayerId ? [fixedPlayerId] : this.configuredPlayerIds();
+  },
+
+  reportConfiguredPlayerMismatch() {
+    const configured = this.allConfiguredPlayerIds();
+    const missingCount = configured.filter((playerId) => !this.players[playerId]).length;
+    if (!missingCount) {
+      this.lastPlayerMismatchWarning = "";
+      return;
+    }
+    const availableNames = Object.values(this.players)
+      .filter((player) => player && player.available !== false && player.enabled !== false)
+      .map((player) => player.display_name || player.name)
+      .filter(Boolean)
+      .sort();
+    const signature = `${missingCount}:${availableNames.join("|")}`;
+    if (signature === this.lastPlayerMismatchWarning) return;
+    this.lastPlayerMismatchWarning = signature;
+    const message = `MMM-MusicAssistant-Controller: ${missingCount} configured player ID(s) were not found.` +
+      ` Available players: ${availableNames.length ? availableNames.join(", ") : "none"}.`;
+    if (typeof Log !== "undefined" && typeof Log.warn === "function") Log.warn(message);
   },
 
   selectPlayer(playerId) {
@@ -408,10 +435,14 @@ Module.register("MMM-MusicAssistant-Controller", {
 
   statusText() {
     if (this.connectionState === "connected") {
-      if (!this.selectedPlayerId) return this.translate("CONNECTED_NO_PLAYERS");
+      if (!this.selectedPlayerId) {
+        return this.configuredPlayerIds().length
+          ? this.translate("CONFIGURED_PLAYERS_NOT_FOUND")
+          : this.translate("CONNECTED_NO_PLAYERS");
+      }
       if (!this.players[this.selectedPlayerId]) {
         return this.fixedPlayerId()
-          ? this.translate("CONFIGURED_PLAYER_UNAVAILABLE")
+          ? this.translate("CONFIGURED_PLAYER_NOT_FOUND")
           : this.translate("SELECTED_PLAYER_UNAVAILABLE");
       }
       return "";

@@ -215,6 +215,45 @@ test("playerId arrays limit the selectable players without fixing the selection"
   );
 });
 
+test("reports stale configured player IDs without falling back or exposing IDs", () => {
+  let definition;
+  const warnings = [];
+  const source = fs.readFileSync(
+    path.join(__dirname, "..", "MMM-MusicAssistant-Controller.js"),
+    "utf8"
+  );
+  vm.runInNewContext(source, {
+    Module: { register(_name, moduleDefinition) { definition = moduleDefinition; } },
+    Log: { warn(message) { warnings.push(message); } }
+  });
+  const instance = {
+    config: { playerId: ["stale-bedroom", "stale-kitchen"] },
+    players: {
+      current: { player_id: "current", name: "Living Room", available: true, enabled: true }
+    },
+    selectedPlayerId: "",
+    connectionState: "connected",
+    lastPlayerMismatchWarning: "",
+    fixedPlayerId: definition.fixedPlayerId,
+    configuredPlayerIds: definition.configuredPlayerIds,
+    allConfiguredPlayerIds: definition.allConfiguredPlayerIds,
+    translate: (key) => key
+  };
+
+  definition.reportConfiguredPlayerMismatch.call(instance);
+  definition.reportConfiguredPlayerMismatch.call(instance);
+
+  assert.equal(definition.statusText.call(instance), "CONFIGURED_PLAYERS_NOT_FOUND");
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /2 configured player ID\(s\) were not found/);
+  assert.match(warnings[0], /Living Room/);
+  assert.doesNotMatch(warnings[0], /stale-bedroom|stale-kitchen/);
+
+  instance.config.playerId = "stale-fixed";
+  instance.selectedPlayerId = "stale-fixed";
+  assert.equal(definition.statusText.call(instance), "CONFIGURED_PLAYER_NOT_FOUND");
+});
+
 test("compact mode adds an opt-in root class without changing the default", () => {
   let definition;
   const source = fs.readFileSync(

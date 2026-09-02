@@ -7,6 +7,8 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Clear stale-player status messages, safe player-name diagnostics, and regression coverage for
+  configured IDs that Music Assistant no longer reports.
 - Basic update instructions and consistently formatted configuration examples.
 - ESLint checks, a reproducible development lockfile, and weekly Dependabot updates.
 - Project code of conduct and release changelog.

@@ -322,8 +322,11 @@ For a live smoke test:
 
 - **Authentication error:** create a new long-lived token and verify the private file exports
   either `{ token: "…" }` or the token string itself.
+- **Configured player not found:** Music Assistant upgrades, restored backups, or re-registering a
+  player can change its ID. Find the player ID again and update `playerId`. The browser console lists
+  available player names for diagnosis, but never logs configured IDs or the authentication token.
 - **No players:** verify players are enabled and available in Music Assistant. Prefer an exact
-  `playerId`.
+  `playerId` when the player must not change automatically.
 - **Artwork missing:** verify the browser can load the Music Assistant HTTP URL directly.
 - **Connection repeatedly restarts:** check hostname resolution, firewall rules, HTTPS mixed
   content, and Music Assistant logs. The token is deliberately omitted from module logs.
